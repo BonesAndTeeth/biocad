@@ -1,19 +1,4 @@
-
-var values = {
-	paths: 50,
-	minPoints: 5,
-	maxPoints: 15,
-	minRadius: 30,
-	maxRadius: 90
-};
-
-var hitOptions = {
-	segments: true,
-	stroke: true,
-	fill: true,
-	bounds:true,
-	tolerance: 7
-};
+var width = 0;
 
 prep();
 function prep(){
@@ -33,53 +18,17 @@ function prep(){
     }
 }
 
-window.globals = { 
-    thequeue: [],
-    CreatePiece: function(pieceName){
-        var l = globals.thequeue.length;
-        l = l+1;
-        var width = 727/l;
-        var rectangle = new Rectangle(new Point(50, 70), new Point(777, 110));
-        var cornerSize = new Size(7.7, 7.7);
-        var path = new Path.RoundRectangle(rectangle, cornerSize);
-        path.visible = true;
-        path.closed = true;
-
-        path.fillColor = '#9efefe';
-        path.strokeColor = '#e9e9ff';
-        view.update();
-        return path;
-    }
-};
-
-
-
-var from = new Point(0, 0);
-var to = new Point(857, 377);
-//var path = new Path.Line(from, to);
-//path.strokeColor = 'black';
-
-var myPath = new Path();
-myPath.add(new Point(20, 70));
-myPath.add(new Point(20, 237));
-myPath.add(new Point(807, 237));
-myPath.add(new Point(807, 70));
-myPath.add(new Point(777, 70));
-myPath.add(new Point(777, 207));
-myPath.add(new Point(50, 207));
-myPath.add(new Point(50, 70));
-myPath.closed = true;
-myPath.strokeColor = '#68786C';
-myPath.fillColor = '#68786C'
-
-var temp = globals.CreatePiece();
-temp.data.number = 1;
-globals.thequeue.push(temp);
-
-document.getElementById("printHere").innerHTML = globals.thequeue[0].data.number;
-
+var nothing = "no";
+document.getElementById("printHere").innerHTML = nothing;
 var path;
 var movePath = false;
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    bounds:true,
+    tolerance: 0
+};
 function onMouseDown(event) {
 	path = null;
 	var hitResult = project.hitTest(event.point, hitOptions);
@@ -111,33 +60,140 @@ function onMouseMove(event) {
 
 function onMouseDrag(event) {
 	if (path) {
-		path.position += event.delta;
+		path.position.x += event.delta.x;
 	}
 }
 
-function addAfter(queue, prev, curr){
-	//need to be defined
-}
+var hitOptions1 = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    bounds:true,
+    tolerance: 5
+};
 
 function onMouseUp(event) {
 	if(path){
-		var offbyx = path.position.x-50;
+		var offbyx = path.position.x - width/2 - 0.4*width;
 		var offbyy = path.position.y;
 		var prev;
-		var hitResult = project.hitTest(new Point(offbyx, offbyy), hitOptions);
-		if (!hitResult)
-			return;
+		var hitResult = project.hitTest(new Point(offbyx, offbyy), hitOptions1);
+		if (!hitResult){
+            if(path.position.x-width<=57)
+                prev = myPath;
+            else return;
+        }
 		if (hitResult) {
 			prev = hitResult.item;
 		}
-		var curr = event.item;
-		if(queue.indexOf(prev) != -1){
-			queue.push(curr);
-		}
+
+		//if(queue.indexOf(prev) != -1){
+		//	queue.push(curr);
+		//}
 		
-		if(curr.position.x != prev.position.x){
-			curr.position.x = prev.position.x + 50;
-			curr.position.y = prev.position.y;
-		}
-	}
+		if(path.position.x != prev.position.x){
+            if(prev==myPath){
+                path.position.x = 57+width/2;
+            }
+            else{
+                path.position.x = prev.position.x + width;
+                path.position.y = prev.position.y;
+            }
+
+        }
+    }
 }
+
+function palatte(pieceName){
+    switch(pieceName) {
+        case 1:
+        return '#6483B0';
+        case 2:
+        return '#004E78';
+        case 3:
+        return '#CCCCFF';
+        case 4:
+        return '#87C4ED';
+        case 5:
+        return '#ABD6E0';
+        case 6:
+        return '#C8E6E2';
+        default:
+        return '#2883B0';
+    }
+}
+
+function palatteOuter(pieceName){
+    switch(pieceName) {
+        case 1:
+        return '#5F7896'
+        case 2:
+        return '#344069';
+        case 3:
+        return '#9999FF';
+        case 4:
+        return '#0079BA';
+        case 5:
+        return '#95C4DB';
+        case 6:
+        return '#ADD4D9';
+        default:
+        return '#58C3E0';
+    }
+}
+
+var myPath = new Path();
+myPath.add(new Point(27, 70));
+myPath.add(new Point(27, 237));
+myPath.add(new Point(807, 237));
+myPath.add(new Point(807, 70));
+myPath.add(new Point(777, 70));
+myPath.add(new Point(777, 207));
+myPath.add(new Point(57, 207));
+myPath.add(new Point(57, 70));
+myPath.closed = true;
+myPath.strokeColor = '#68786C';
+myPath.fillColor = '#68786C'
+
+view.update();
+
+window.globals = { 
+    thequeue: [],
+    CreateHelper: function(pieceName, startPoint, endPoint){
+        var rectangle = new Rectangle(startPoint, endPoint);
+        var cornerSize = new Size(7.7, 7.7);
+        var path1 = new Path.RoundRectangle(rectangle, cornerSize);
+        path1.visible = true;
+        path1.closed = true;
+        path1.fillColor = palatte(pieceName);
+        path1.strokeColor = palatteOuter(pieceName);
+        path1.data.pieceName = pieceName;
+        return path1;
+    },
+    CreatePiece: function(pieceName){
+        var tempData = [];
+        var l = globals.thequeue.length;
+        var k = l+1;
+        width = 720/k;
+        var i;
+        for(i=0;i<l;i++){
+            tempData.push(globals.thequeue[i].data.pieceName);
+            globals.thequeue[i].removeSegments();
+        }
+        globals.thequeue = [];
+        view.update();
+        var x_init = 57;
+        var x_close = 777;
+        for(i=0;i<l;i++){
+            var from = new Point(x_init+width*i, 70);
+            var to = new Point(x_init+width*(i+1), 110);
+            var to_add = globals.CreateHelper(tempData[i], from, to);
+            globals.thequeue.push(to_add);
+        }
+        var from = new Point(x_init+width*l, 70);
+        var to = new Point(x_close, 110);
+        var to_add = globals.CreateHelper(pieceName, from, to);
+        globals.thequeue.push(to_add);
+        view.update();
+    }
+};
