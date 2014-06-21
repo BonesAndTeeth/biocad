@@ -34,8 +34,12 @@ function prep(){
 }
 
 window.globals = { 
+    thequeue: [],
     CreatePiece: function(pieceName){
-        var rectangle = new Rectangle(new Point(50, 50), new Point(100, 90));
+        var l = globals.thequeue.length;
+        l = l+1;
+        var width = 727/l;
+        var rectangle = new Rectangle(new Point(50, 70), new Point(777, 110));
         var cornerSize = new Size(7.7, 7.7);
         var path = new Path.RoundRectangle(rectangle, cornerSize);
         path.visible = true;
@@ -43,9 +47,12 @@ window.globals = {
 
         path.fillColor = '#9efefe';
         path.strokeColor = '#e9e9ff';
+        view.update();
         return path;
     }
-} 
+};
+
+
 
 var from = new Point(0, 0);
 var to = new Point(857, 377);
@@ -65,10 +72,11 @@ myPath.closed = true;
 myPath.strokeColor = '#68786C';
 myPath.fillColor = '#68786C'
 
-var queue = [];
 var temp = globals.CreatePiece();
-queue.push(temp);
-globals.CreatePiece();
+temp.data.number = 1;
+globals.thequeue.push(temp);
+
+document.getElementById("printHere").innerHTML = globals.thequeue[0].data.number;
 
 var path;
 var movePath = false;
@@ -85,7 +93,7 @@ function onMouseDown(event) {
 		return;
 	}
 
-	if (hitResult) {
+	if (hitResult && myPath!=hitResult.item) {
 		path = hitResult.item;
 	}
 	movePath = hitResult.type == 'fill';
@@ -95,8 +103,10 @@ function onMouseDown(event) {
 
 function onMouseMove(event) {
 	project.activeLayer.selected = false;
-	if (event.item)
+	if (event.item){
 		event.item.selected = true;
+        myPath.selected = false;
+    }
 }
 
 function onMouseDrag(event) {
