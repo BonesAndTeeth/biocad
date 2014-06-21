@@ -1,0 +1,133 @@
+
+var values = {
+	paths: 50,
+	minPoints: 5,
+	maxPoints: 15,
+	minRadius: 30,
+	maxRadius: 90
+};
+
+var hitOptions = {
+	segments: true,
+	stroke: true,
+	fill: true,
+	bounds:true,
+	tolerance: 7
+};
+
+prep();
+function prep(){
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function (obj, fromIndex) {
+            if (fromIndex == null) {
+                fromIndex = 0;
+            } else if (fromIndex < 0) {
+                fromIndex = Math.max(0, this.length + fromIndex);
+            }
+            for (var i = fromIndex, j = this.length; i < j; i++) {
+                if (this[i] === obj)
+                    return i;
+            }
+            return -1;
+        };
+    }
+}
+
+window.globals = { 
+    CreatePiece: function(pieceName){
+        var rectangle = new Rectangle(new Point(50, 50), new Point(100, 90));
+        var cornerSize = new Size(7.7, 7.7);
+        var path = new Path.RoundRectangle(rectangle, cornerSize);
+        path.visible = true;
+        path.closed = true;
+
+        path.fillColor = '#9efefe';
+        path.strokeColor = '#e9e9ff';
+        return path;
+    }
+} 
+
+var from = new Point(0, 0);
+var to = new Point(857, 377);
+//var path = new Path.Line(from, to);
+//path.strokeColor = 'black';
+
+var myPath = new Path();
+myPath.add(new Point(20, 70));
+myPath.add(new Point(20, 237));
+myPath.add(new Point(807, 237));
+myPath.add(new Point(807, 70));
+myPath.add(new Point(777, 70));
+myPath.add(new Point(777, 207));
+myPath.add(new Point(50, 207));
+myPath.add(new Point(50, 70));
+myPath.closed = true;
+myPath.strokeColor = '#68786C';
+myPath.fillColor = '#68786C'
+
+var queue = [];
+var temp = globals.CreatePiece();
+queue.push(temp);
+globals.CreatePiece();
+
+var path;
+var movePath = false;
+function onMouseDown(event) {
+	path = null;
+	var hitResult = project.hitTest(event.point, hitOptions);
+	if (!hitResult)
+		return;
+
+	if (event.modifiers.shift) {
+		if (hitResult.type == 'segment') {
+			hitResult.segment.remove();
+		};
+		return;
+	}
+
+	if (hitResult) {
+		path = hitResult.item;
+	}
+	movePath = hitResult.type == 'fill';
+	if (movePath)
+		project.activeLayer.addChild(hitResult.item);
+}
+
+function onMouseMove(event) {
+	project.activeLayer.selected = false;
+	if (event.item)
+		event.item.selected = true;
+}
+
+function onMouseDrag(event) {
+	if (path) {
+		path.position += event.delta;
+	}
+}
+
+function addAfter(queue, prev, curr){
+	//need to be defined
+}
+
+function onMouseUp(event) {
+	if(path){
+		var offbyx = path.position.x-50;
+		var offbyy = path.position.y;
+		var prev;
+		var hitResult = project.hitTest(new Point(offbyx, offbyy), hitOptions);
+		if (!hitResult)
+			return;
+		if (hitResult) {
+			prev = hitResult.item;
+		}
+		var curr = event.item;
+		if(queue.indexOf(prev) != -1){
+			queue.push(curr);
+		}
+		
+		if(curr.position.x != prev.position.x){
+			curr.position.x = prev.position.x + 50;
+			curr.position.y = prev.position.y;
+		}
+	}
+}
